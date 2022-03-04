@@ -2,6 +2,7 @@ mod blockchain;
 use blockchain::Blockchain;
 
 fn main() {
-    let bc = Blockchain::new("Hello, world!");
-    println!("last block: {:?}", bc);
+    let mut bc = Blockchain::new("Hello, world!");
+    bc.add(format!("new block"));
+    println!("block chain: {:?}", bc);
 }

@@ -26,7 +26,16 @@ impl Blockchain {
         }
     }
 
-    // fn add(&self, data: String) -> Block {}
+    pub fn add(&mut self, data: String) -> Block {
+        let previous_block_hash = self.last.hash.clone();
+        let new_block = Block {
+            hash: Blockchain::hash(&data),
+            previous_block_hash: Some(previous_block_hash),
+            data: data.to_string(),
+        };
+        self.last = new_block.clone();
+        new_block
+    }
 
     pub fn hash(str: &str) -> String {
         let mut hasher = Sha256::new();
