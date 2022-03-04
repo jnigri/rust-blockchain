@@ -15,26 +15,32 @@ pub struct Block {
 
 impl Block {
     pub fn new(previous_hash: Option<String>, data: &str) -> Block {
-        let (hash, content) = Block::proof_of_work(previous_hash, data, 0);
+        let (hash, content) = Block::proof_of_work(&previous_hash, data);
         Block { hash, content }
     }
 
-    fn proof_of_work(
-        previous_hash: Option<String>,
+    fn proof_of_work(previous_hash: &Option<String>, data: &str) -> (String, BlockContent) {
+        let mut nonce = 0u32;
+        let mut kp = Block::get_content_with_hash(previous_hash, data, nonce);
+        while &kp.0[..2] != "00" {
+            kp = Block::get_content_with_hash(previous_hash, data, nonce);
+            nonce += 1;
+        }
+        kp
+    }
+
+    fn get_content_with_hash(
+        previous_hash: &Option<String>,
         data: &str,
         nonce: u32,
     ) -> (String, BlockContent) {
         let content = BlockContent {
             previous_hash: previous_hash.clone(),
             data: data.to_string(),
-            nonce: nonce,
+            nonce,
         };
         let hash = Block::hash(&format!("{:?}", content));
-        if &hash[..1] == "0" {
-            (hash, content)
-        } else {
-            Block::proof_of_work(previous_hash, data, nonce + 1)
-        }
+        (hash, content)
     }
 
     fn hash(str: &str) -> String {
