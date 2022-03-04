@@ -21,26 +21,24 @@ impl Block {
 
     fn proof_of_work(previous_hash: &Option<String>, data: &str) -> (String, BlockContent) {
         let mut nonce = 0u32;
-        let mut kp = Block::get_content_with_hash(previous_hash, data, nonce);
-        while &kp.0[..2] != "00" {
-            kp = Block::get_content_with_hash(previous_hash, data, nonce);
+        loop {
+            let content = BlockContent {
+                previous_hash: previous_hash.clone(),
+                data: data.to_string(),
+                nonce,
+            };
+            let hash = Block::hash(&format!("{:?}", content));
             nonce += 1;
+            if Block::check_complexity(&hash) {
+                return (hash, content);
+            }
         }
-        kp
     }
 
-    fn get_content_with_hash(
-        previous_hash: &Option<String>,
-        data: &str,
-        nonce: u32,
-    ) -> (String, BlockContent) {
-        let content = BlockContent {
-            previous_hash: previous_hash.clone(),
-            data: data.to_string(),
-            nonce,
-        };
-        let hash = Block::hash(&format!("{:?}", content));
-        (hash, content)
+    fn check_complexity(hash: &str) -> bool {
+        let n = 2;
+        // check that the n first char of the hash are equal to 0
+        !hash[..n].chars().any(|c| c != '0')
     }
 
     fn hash(str: &str) -> String {
@@ -58,13 +56,13 @@ mod tests {
     use super::Block;
 
     #[test]
-    fn blockchain_can_create_new_chain() {
+    fn it_can_create_new_block() {
         let block = Block::new(None, "Hello, world!");
-        assert_eq!(&block.hash[..1], "0");
+        assert_eq!(&block.hash[..2], "00");
     }
 
     #[test]
-    fn blockchain_can_add_new_block() {
+    fn it_can_link_blocks() {
         let first_block = Block::new(None, "first block");
         let second_block = Block::new(Some(first_block.hash.clone()), "second block");
         let third_block = Block::new(Some(second_block.hash.clone()), "third block");
